@@ -1,0 +1,11 @@
+@import 'variables';
+
+.btn {
+  border: 0;
+  cursor: pointer;
+  background-color: transparent;
+
+  &:focus {
+    outline: none;
+  }
+}

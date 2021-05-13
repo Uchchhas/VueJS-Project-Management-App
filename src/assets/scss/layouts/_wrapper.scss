@@ -1,0 +1,30 @@
+@import '../variables';
+
+html {
+  font-family: $app-font-family;
+}
+
+body {
+  margin: 0;
+}
+
+.layout-wrapper {
+  min-height: 100vh ;
+  position: relative;
+  display: flex;
+
+  .content-wrapper {
+    flex-grow: 1;
+    background-color: $base-color;
+
+    .main-content {
+      padding: 2rem 2.5rem;
+    }
+  }
+
+  @media (min-width: 991px) {
+    .content-wrapper {
+      margin-left: $sidebar-width;
+    }
+  }
+}

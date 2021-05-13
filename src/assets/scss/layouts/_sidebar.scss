@@ -1,0 +1,182 @@
+@import '../variables';
+
+.sidebar {
+  width: $sidebar-width;
+  height: 100vh;
+  display: flex;
+  flex-shrink: 0;
+  position: fixed;
+  transition: all $default-transition-duration;
+
+  .sidebar-navigation {
+    width: $sidebar-navigation-width;
+    background-color: $app-color;
+
+    .logo-wrapper {
+      padding: 0.5rem;
+      text-align: center;
+      border-bottom: 1px solid lighten($app-color, 10%);
+
+      .app-logo {
+        width: 55px;
+        height: auto;
+      }
+    }
+
+    .navigation {
+      padding: 0;
+      list-style: none;
+
+      .navigation-item {
+        margin: 0.25rem 0;
+        position: relative;
+
+        .navigation-link {
+          display: flex;
+          justify-content: center;
+
+          .navigation-icon {
+            width: calc(#{$sidebar-navigation-width} - 20px);
+            height: calc(#{$sidebar-navigation-width} - 20px);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 13px;
+            transition: 0.3s;
+
+            i {
+              color: #fff;
+              font-size: 22px;
+            }
+          }
+
+          &:hover {
+            .navigation-icon {
+              background-color: lighten($app-color, 7%);
+            }
+
+            + {
+              .navigation-item-details {
+                opacity: 1;
+                visibility: visible;
+                background-color: #fff;
+              }
+            }
+          }
+
+          &.active{
+            .navigation-icon {
+              background-color: lighten($app-color, 60%);
+
+              i {
+                color: $app-color;
+              }
+            }
+
+            + {
+              .navigation-item-details {
+                opacity: 1;
+                visibility: visible;
+              }
+            }
+          }
+        }
+
+        .navigation-item-details {
+          width: calc(#{$sidebar-width} - #{$sidebar-navigation-width} - 3rem);
+          min-height: 100%;
+          position: absolute;
+          top: 0;
+          left: $sidebar-navigation-width;
+          padding: 0 1.5rem;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          text-transform: capitalize;
+          transition: $default-transition-duration;
+          visibility: hidden;
+          opacity: 0;
+
+          .navigation-title {
+            display: flex;
+            color: lighten(#000, 40%);
+          }
+
+          &.has-submenu {
+            .navigation-title {
+              align-items: center;
+              margin-bottom: 0.25rem;
+              justify-content: space-between;
+            }
+
+            .navigation-item-submenu {
+              padding: 0;
+              list-style: none;
+
+              .submenu-item {
+                .submenu-link {
+                  display: block;
+                  padding: 0.25rem 0;
+                  color: lighten(#000, 40%);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .sidebar-navigation-details {
+    background-color: #fff;
+    width: calc(#{$sidebar-width} - #{$sidebar-navigation-width});
+
+    .page-intro {
+      padding: 0.35rem 1.5rem;
+      text-transform: capitalize;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .btn-add {
+      width: 32px;
+      height: 32px;
+      color: #fff;
+      font-size: 14px;
+      font-weight: bold;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background-color: $app-color;
+    }
+  }
+
+  .sidebar-overlay {
+    display: none;
+  }
+
+  @media (max-width: 991px) {
+    left: -$sidebar-width;
+
+    &.sidebar-open {
+      left: 0;
+      z-index: 2;
+      box-shadow: 0 5px 10px rgba(0, 0, 0, 0.05);
+
+      + {
+        .sidebar-overlay {
+          z-index: 1;
+          display: block;
+          position: absolute;
+          top: 0;
+          right: 0;
+          bottom: 0;
+          left: 0;
+          background: rgba(34, 53, 58, 0.02);
+        }
+      }
+    }
+  }
+}
