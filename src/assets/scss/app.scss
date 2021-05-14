@@ -4,9 +4,11 @@
 @import 'layouts/sidebar';
 @import 'layouts/wrapper';
 
+@import 'utilities/mixins';
 @import 'utilities/typography';
 
 @import 'buttons';
+@import 'modals';
 @import 'variables';
 
 @import 'pages/projects';

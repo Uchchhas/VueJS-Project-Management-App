@@ -14,7 +14,7 @@
     align-items: center;
     justify-content: center;
     border-radius: 0.25rem;
-    background-color: #fff;
+    background-color: $base-color;
 
     &:focus {
       outline: none;
@@ -232,11 +232,30 @@
   &.navbar-sticky {
     background-color: #fff;
     box-shadow: 9px 2px 10px rgba(0, 0, 0, 0.05);
+
+    .navbar-search {
+      .search-form {
+        input {
+          background-color: $base-color;
+        }
+      }
+    }
   }
 
   @media (max-width: 991px) {
+    background-color: #fff;
+    box-shadow: 9px 2px 10px rgba(0, 0, 0, 0.05);
+
     .btn-toggle-sidebar {
       display: inline-flex;
+    }
+
+    .navbar-search {
+      .search-form {
+        input {
+          background-color: $base-color;
+        }
+      }
     }
   }
 

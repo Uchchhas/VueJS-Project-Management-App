@@ -1,0 +1,90 @@
+@import 'variables';
+
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  align-items: center;
+  justify-content: center;
+  background-color: rgb(0,0,0);
+  background-color: rgba(0,0,0,0.4);
+
+  .modal-content {
+    position: relative;
+    margin: auto;
+    width: 430px;
+    padding: 2rem;
+    border-radius: 0.3rem;
+    background-color: #fefefe;
+    animation-duration: 0.4s;
+    -webkit-animation-duration: 0.4s;
+    animation-name: animateTop;
+    -webkit-animation-name: animateTop;
+    box-shadow: 0 4px 8px 0 rgb(0 0 0 / 20%), 0 6px 20px 0 rgb(0 0 0 / 19%);
+
+    .close {
+      position: absolute;
+      top: 0.5rem;
+      right: 0.5rem;
+      width: 30px;
+      height: 30px;
+      border: 0;
+      font-size: 25px;
+      cursor: pointer;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: lighten(#000, 70%);
+      background-color: transparent;
+      transition: $default-transition-duration;
+
+      &:hover, &:focus {
+        color: lighten(#000, 50%);
+      }
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+      padding-bottom: 1rem;
+      border-radius: 0.3rem 0.3rem 0 0;
+      border-bottom: 2px solid $light-color;
+
+      .modal-title {
+        margin: 0;
+      }
+    }
+
+    .modal-body {
+
+    }
+  }
+
+  &.show {
+    display: flex;
+  }
+}
+
+
+/* Add Animation */
+@-webkit-keyframes animateTop {
+  from {top:-300px; opacity:0}
+  to {top:0; opacity:1}
+}
+
+@keyframes animateTop {
+  from {top:-300px; opacity:0}
+  to {top:0; opacity:1}
+}
+
+
+
+

@@ -1,0 +1,16 @@
+@import '../variables';
+
+@mixin scrollbar-mixin {
+  &::-webkit-scrollbar {
+    width: 7px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: lighten($app-color, 55%);
+  }
+
+  &::-webkit-scrollbar-thumb {
+    border-radius: 5px;
+    background: $app-color;
+  }
+}
