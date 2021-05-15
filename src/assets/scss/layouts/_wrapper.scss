@@ -20,13 +20,25 @@ body {
     background-color: $base-color;
 
     .main-content {
-      padding: 2rem 2.5rem;
+      padding: 76px 2.5rem 2rem 2.5rem;
     }
   }
 
   @media (min-width: 991px) {
     .content-wrapper {
       margin-left: $sidebar-width;
+
+      .main-content {
+        padding-top: 100px;
+      }
+    }
+  }
+
+  @media (max-width: 991px) {
+    .content-wrapper {
+      .main-content {
+        padding-top: 100px;
+      }
     }
   }
 }

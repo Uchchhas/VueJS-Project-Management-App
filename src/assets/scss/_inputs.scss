@@ -1,0 +1,18 @@
+@import 'variables';
+
+.form-control {
+  width: 100%;
+  display: block;
+  line-height: 1.5;
+  font-weight: 400;
+  padding: 0.65rem 1rem;
+  border-radius: 0.5rem;
+  box-sizing: border-box;
+  border: 2px solid $light-color;
+  transition: $default-transition-duration;
+
+  &:focus {
+    outline: none;
+    border-color: $app-color;
+  }
+}

@@ -88,6 +88,18 @@
                 let sidebar = document.querySelector('.sidebar');
                 sidebar.classList.toggle('sidebar-open')
             }
+        },
+        mounted() {
+            // Add class navbar onscroll
+            let navbar = document.querySelector('.navbar');
+            
+            window.onscroll = function () {
+                if (window.pageYOffset > 0) {
+                    navbar.classList.add('navbar-sticky');
+                } else {
+                    navbar.classList.remove('navbar-sticky');
+                }
+            }
         }
     }
 </script>

@@ -188,10 +188,10 @@
         }
 
         .btn-add-task {
-          border: 0;
+          border: none;
           flex-shrink: 0;
           font-size: 14px;
-          padding: 0.4rem 1.25rem;
+          padding: 0.4rem 1rem;
           background-color: lighten(#000, 90%);
           @include rounded-button-mixin;
 
@@ -206,7 +206,7 @@
         margin-bottom: 1rem;
         border-radius: 0.35rem;
         background-color: #fff;
-        box-shadow: 0 1rem 3rem rgb(0, 0, 0, 0.08);
+        box-shadow: 0 1rem 3rem rgb(0, 0, 0, 0.05);
 
         .description {
           font-size: 14px;
@@ -229,6 +229,58 @@
 
             @include avatar-group-mixin;
           }
+
+          .dropdown-action {
+            position: relative;
+            display: inline-block;
+
+            button {
+              width: 30px;
+              height: 30px;
+              border: none;
+              cursor: pointer;
+              font-size: 14px;
+              text-align: center;
+              line-height: 30px;
+              border-radius: 50%;
+              background-color: transparent;
+              color: darken($light-color, 40%);
+              transition: $default-transition-duration;
+
+              &:hover, &:focus {
+                background-color: $light-color;
+              }
+            }
+
+            .dropdown-content {
+              display: none;
+              position: absolute;
+              right: 0;
+              z-index: 1;
+              padding: 6px 0;
+              overflow: auto;
+              font-size: 14px;
+              min-width: 110px;
+              border-radius: 0.5rem;
+              background-color: #fff;
+              box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.07);
+
+              a {
+                display: block;
+                padding: 8px 16px;
+                color: darken($light-color, 40%);
+                transition: $default-transition-duration;
+
+                &:hover {
+                  background-color: $base-color;
+                }
+              }
+
+              &.show {
+                display: block;
+              }
+            }
+          }
         }
       }
 
@@ -243,7 +295,7 @@
       }
     }
   }
-  
+
   @media (max-width: 575px) {
     .draggable-wrapper {
       display: block;
@@ -269,5 +321,154 @@
         margin-bottom: 0;
       }
     }
+  }
+}
+
+.task-modal {
+  .modal-content {
+    .modal-header {
+      margin-bottom: 0;
+    }
+  }
+
+  .tab {
+    margin: 0 5px;
+
+    .tab-header {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      display: flex;
+      list-style: none;
+      align-items: center;
+
+      .tab-menu-item {
+        flex: 1;
+        cursor: pointer;
+        padding: 22px 0;
+        font-size: 17px;
+        font-weight: 400;
+        text-align: center;
+        position: relative;
+        color: darken($light-color, 60%);
+        transition: $default-transition-duration;
+
+        &:after {
+          content: '';
+          position: absolute;
+          bottom: 0;
+          left: 50%;
+          width: 35%;
+          height: 3px;
+          border-radius: 2px;
+          background: $light-color;
+          transition: all 0.3s ease;
+          transform: translate(-50%, 0%);
+        }
+
+        &:hover {
+          color: darken($light-color, 70%);
+
+          &:after {
+            background: darken($light-color, 30%);
+          }
+        }
+
+        &.active {
+          color: $app-color;
+
+          &:after {
+            background: $app-color;
+          }
+        }
+      }
+    }
+
+    .tab-content {
+      overflow: hidden;
+      position: relative;
+
+      .tab-list {
+        margin: 0;
+        padding: 0;
+        display: flex;
+        list-style: none;
+        position: relative;
+        transition: all 0.25s linear;
+
+        .tab-list-item {
+          opacity: 0;
+          width: 100%;
+          min-width: 100%;
+          padding: 10px 0;
+          position: relative;
+          box-sizing: border-box;
+          transition: opacity $default-transition-duration;
+
+          .form-group {
+            margin-bottom: 1.2rem;
+
+            label {
+              display: block;
+              font-size: 14px;
+              font-weight: 600;
+              margin-bottom: 0.4rem;
+            }
+
+            &.search-employee {
+              margin-top: 0.5rem;
+            }
+          }
+
+          .employees-wrapper {
+            overflow-y: auto;
+            max-height: 271px;
+            @include scrollbar-mixin;
+
+            .employee {
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              padding: 1rem 0;
+              border-bottom: 1px solid $light-color;
+
+              &:first-child {
+                padding-top: 0;
+              }
+
+              &:last-child {
+                border-bottom: none;
+              }
+
+              .btn-remove {
+                border: none;
+                font-size: 20px;
+                cursor: pointer;
+                background-color: transparent;
+                color: darken($light-color, 40%);
+                transition: $default-transition-duration;
+
+                &:hover {
+                  color: #b42222;
+                }
+              }
+            }
+          }
+
+          &.active {
+            opacity: 1;
+          }
+        }
+      }
+    }
+  }
+
+  .btn-save {
+    border: none;
+    color: #fff;
+    font-size: 14px;
+    padding: 0.6rem 1.5rem;
+    background-color: $app-color;
+    @include rounded-button-mixin;
   }
 }

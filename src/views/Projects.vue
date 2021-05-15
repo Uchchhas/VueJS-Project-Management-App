@@ -47,7 +47,7 @@
                                     ( {{ projectState.stateItems.length }} )
                                 </span>
                             </div>
-                            <button type="button" class="btn-add-task">
+                            <button type="button" class="btn-add-task" @click="openTaskModal">
                                 <i class="bi bi-plus"></i> New Task
                             </button>
                         </div>
@@ -75,8 +75,18 @@
                                                     {{ getNameInitial(user.name) }}
                                                 </div>
                                             </template>
-                                            <div v-if="element.assignedUsers > 3" class="more-user" @click="openUsersModal">
+                                            <div v-if="element.assignedUsers > 3" class="more-user"
+                                                 @click="openUsersModal">
                                                 {{ users.length - 3 }}+
+                                            </div>
+                                        </div>
+                                        <div class="dropdown dropdown-action">
+                                            <button type="button" @click="openDropdown(`project_action_${element.id}`)">
+                                                <i class="bi bi-three-dots"/>
+                                            </button>
+                                            <div :id="`project_action_${element.id}`" class="dropdown-content">
+                                                <a href="#">Edit</a>
+                                                <a href="#">Delete</a>
                                             </div>
                                         </div>
                                     </div>
@@ -105,6 +115,76 @@
                             <p class="user-name">{{ user.name }}</p>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Task Modal -->
+        <div id="taskModal" class="modal task-modal">
+            <div class="modal-content">
+                <button type="button" class="close" @click="closeTaskModal">
+                    <i class="bi bi-x"/>
+                </button>
+                <div class="modal-header">
+                    <h2 class="modal-title">Create New Task</h2>
+                </div>
+                <div class="modal-body">
+                    <div class="tab">
+                        <ul class="tab-header">
+                            <li class="tab-menu-item"
+                                @click="selectTab(1)"
+                                :class="{active: activeTab === 1}">
+                                General Info
+                            </li>
+                            <li class="tab-menu-item"
+                                @click="selectTab(2)"
+                                :class="{active: activeTab === 2}">
+                                Assigned To
+                            </li>
+                        </ul>
+                        <div class="tab-content">
+                            <ul class="tab-list" ref="tabsList">
+                                <li class="tab-list-item" :class="{active: activeTab === 1}">
+                                    <div class="form-group">
+                                        <label for="title">Title</label>
+                                        <input type="text" id="title" class="form-control" placeholder="Enter task title">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="description">Description</label>
+                                        <textarea id="description" class="form-control" rows="5"></textarea>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="projectType">Project Type</label>
+                                        <select id="projectType" class="form-control">
+                                            <option value="important">Important</option>
+                                            <option value="irrelevant">Irrelevant</option>
+                                            <option value="default">Default</option>
+                                        </select>
+                                    </div>
+                                </li>
+                                <li class="tab-list-item" :class="{active: activeTab === 2}">
+                                    <div class="form-group search-employee">
+                                        <input type="search" class="form-control" placeholder="Search Employees">
+                                    </div>
+                                    <div class="employees-wrapper">
+                                        <div class="employee" v-for="(user, index) in users">
+                                            <div class="user-media">
+                                                <img v-if="user.img_url" :src="user.img_url" :alt="user.name">
+                                                <div v-else class="no-img">{{ getNameInitial(user.name) }}</div>
+                                                <p class="user-name">{{ user.name }}</p>
+                                            </div>
+                                            <button type="button" class="btn-remove" @click="removeEmployee(id)">
+                                                <i class="bi bi-x"/>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-save">
+                        Save
+                    </button>
                 </div>
             </div>
         </div>
@@ -403,7 +483,10 @@
                             ]
                         }
                     ]
-                }
+                },
+                
+                activeTab: 1,
+                offsetRight: 0,
             }
         },
         methods: {
@@ -413,17 +496,31 @@
             closeUsersModal() {
                 document.getElementById('usersModal').classList.remove('show')
             },
+            openTaskModal() {
+                document.getElementById('taskModal').classList.add('show');
+            },
+            closeTaskModal() {
+                document.getElementById('taskModal').classList.remove('show')
+            },
             getNameInitial(name) {
                 const fullName = name.split(' ');
                 const initials = fullName.shift().charAt(0) + fullName.pop().charAt(0);
                 return initials.toUpperCase();
             },
-            add() {
-                this.list.push({name: "Juan"});
+            openDropdown(id) {
+                document.getElementById(id).classList.toggle('show');
             },
-            replace() {
-                this.list = [{name: "Edgard"}];
+            removeEmployee(id) {
+            
             },
+            selectTab(id) {
+                let tabsList = this.$refs.tabsList;
+                this.activeTab = id;
+                this.offsetRight = tabsList.clientWidth * (id - 1);
+                tabsList.style.right = this.offsetRight + 'px';
+            },
+            
+            // Draggable States
             clone(el) {
                 return {
                     name: el.name + " cloned"
@@ -431,17 +528,25 @@
             },
             log(evt) {
                 window.console.log(evt);
-            }
+            },
         },
         mounted() {
             // Closing modals on outside click
-            let userModal = document.getElementById("usersModal");
+            let userModal = document.getElementById('usersModal'),
+                taskModal = document.getElementById('taskModal');
             
             window.onclick = function (event) {
                 if (event.target == userModal) {
                     userModal.classList.remove('show');
                 }
+                if (event.target == taskModal) {
+                    taskModal.classList.remove('show');
+                }
             }
+            
+            // Animate tab content
+            let tabsList = this.$refs.tabsList;
+            tabsList.style.right = this.offsetRight + 'px';
         }
     }
 </script>
