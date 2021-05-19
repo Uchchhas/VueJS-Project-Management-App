@@ -169,10 +169,12 @@
 
     .draggable-column {
       flex: 1;
+      position: relative;
       min-height: 400px;
       margin-right: 30px;
 
       .column-header {
+        min-height: 34px;
         display: flex;
         flex-wrap: wrap;
         align-items: center;
@@ -201,93 +203,114 @@
         }
       }
 
-      .project-card {
-        padding: 1rem;
-        margin-bottom: 1rem;
-        border-radius: 0.35rem;
-        background-color: #fff;
-        box-shadow: 0 1rem 3rem rgb(0, 0, 0, 0.05);
+      .draggable-area {
+        min-height: 400px;
 
-        .description {
-          font-size: 14px;
-          color: darken($light-color, 40%);
-        }
+        .project-card {
+          padding: 1rem;
+          margin-bottom: 1rem;
+          border-radius: 0.35rem;
+          background-color: #fff;
+          box-shadow: 0 1rem 3rem rgb(0, 0, 0, 0.05);
 
-        .card-footer {
-          margin-top: 1.2rem;
-          padding-top: 1rem;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          border-top: 2px solid $light-color;
-
-          .user-group {
-            img, .more-user, .no-img {
-              width: 30px;
-              height: 30px;
-            }
-
-            @include avatar-group-mixin;
+          .description {
+            font-size: 14px;
+            color: darken($light-color, 40%);
           }
 
-          .dropdown-action {
-            position: relative;
-            display: inline-block;
+          .card-footer {
+            margin-top: 1.2rem;
+            padding-top: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-top: 2px solid $light-color;
 
-            button {
-              width: 30px;
-              height: 30px;
-              border: none;
-              cursor: pointer;
-              font-size: 14px;
-              text-align: center;
-              line-height: 30px;
-              border-radius: 50%;
-              background-color: transparent;
-              color: darken($light-color, 40%);
-              transition: $default-transition-duration;
-
-              &:hover, &:focus {
-                background-color: $light-color;
+            .user-group {
+              img, .more-user, .no-img {
+                width: 30px;
+                height: 30px;
               }
+
+              @include avatar-group-mixin;
             }
 
-            .dropdown-content {
-              display: none;
-              position: absolute;
-              right: 0;
-              z-index: 1;
-              padding: 6px 0;
-              overflow: auto;
-              font-size: 14px;
-              min-width: 110px;
-              border-radius: 0.5rem;
-              background-color: #fff;
-              box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.07);
+            .dropdown-action {
+              position: relative;
+              display: inline-block;
 
-              a {
-                display: block;
-                padding: 8px 16px;
+              button {
+                width: 30px;
+                height: 30px;
+                border: none;
+                cursor: pointer;
+                font-size: 14px;
+                text-align: center;
+                line-height: 30px;
+                border-radius: 50%;
+                background-color: transparent;
                 color: darken($light-color, 40%);
                 transition: $default-transition-duration;
 
-                &:hover {
-                  background-color: $base-color;
+                &:hover, &:focus {
+                  background-color: $light-color;
                 }
               }
 
-              &.show {
-                display: block;
+              .dropdown-content {
+                display: none;
+                position: absolute;
+                right: 0;
+                z-index: 1;
+                padding: 6px 0;
+                overflow: auto;
+                font-size: 14px;
+                min-width: 110px;
+                border-radius: 0.5rem;
+                background-color: #fff;
+                box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.07);
+
+                a {
+                  display: block;
+                  padding: 8px 16px;
+                  color: darken($light-color, 40%);
+                  transition: $default-transition-duration;
+
+                  &:hover {
+                    background-color: $base-color;
+                  }
+                }
+
+                &.show {
+                  display: block;
+                }
               }
             }
           }
         }
       }
 
+      .empty-column {
+        position: absolute;
+        top: 20%;
+        left: 50%;
+        width: 100%;
+        display: block;
+        text-align: center;
+        transform: translateX(-50%);
+
+        img {
+          max-width: 30%;
+          height: auto;
+        }
+      }
+
+
+
       .ghost-card {
-        opacity: 0.5;
-        background: #F7FAFC;
-        border: 1px solid #4299e1;
+        opacity: 0.2;
+        box-shadow: none !important;
+        background-color: darken($base-color, 30%) !important;
       }
 
       &:last-child {
@@ -417,6 +440,46 @@
 
             &.search-employee {
               margin-top: 0.5rem;
+
+              .input-group {
+                position: relative;
+
+                .form-control {
+                  padding: 0.65rem 1rem 0.65rem 2.6rem;
+                }
+
+                i {
+                  top: 50%;
+                  left: 20px;
+                  position: absolute;
+                  transform: translateY(-50%);
+                }
+              }
+
+              .autocomplete-wrapper {
+                position: absolute;
+                top: 62px;
+                left: 0;
+                right: 0;
+                padding: 0;
+                margin: 0;
+                list-style: none;
+                overflow-y: auto;
+                max-height: 160px;
+                background-color: #fff;
+                border: 1px solid $light-color;
+                @include scrollbar-mixin;
+
+                li {
+                  cursor: pointer;
+                  padding: 0.5rem 1rem;
+                  transition: $default-transition-duration;
+
+                  &:hover {
+                    background-color: $light-color;
+                  }
+                }
+              }
             }
           }
 
@@ -451,6 +514,17 @@
                 &:hover {
                   color: #b42222;
                 }
+              }
+            }
+
+            .not-assigned-users {
+              padding: 2rem;
+              text-align: center;
+              border-radius: 0.3rem;
+              background-color: $base-color;
+
+              p {
+                color: #666666;
               }
             }
           }

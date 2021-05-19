@@ -38,7 +38,7 @@
         
         <div class="kanban-wrapper">
             <div class="draggable-wrapper">
-                <template v-for="(projectState, index) in projects.states">
+                <template v-if="projects" v-for="(projectState, index) in projects.states">
                     <div class="draggable-column">
                         <div class="column-header">
                             <div class="column-title">
@@ -47,15 +47,19 @@
                                     ( {{ projectState.stateItems.length }} )
                                 </span>
                             </div>
-                            <button type="button" class="btn-add-task" @click="openTaskModal">
+                            <button v-if="projectState.type !== 'done'"
+                                    type="button"
+                                    class="btn-add-task"
+                                    @click="openTaskModal(projectState.type)">
                                 <i class="bi bi-plus"></i> New Task
                             </button>
                         </div>
-                        <draggable :list="projectState.stateItems"
+                        <draggable class="draggable-area"
+                                   :list="projectState.stateItems"
                                    :animation="200"
                                    ghost-class="ghost-card"
                                    group="projects"
-                                   @change="log"
+                                   @change="changeStage"
                                    :itemKey="projectState.name">
                             <template #item="{element, index}">
                                 <div class="project-card">
@@ -66,7 +70,7 @@
                                     <p class="description">{{ element.description }}</p>
                                     <div class="card-footer">
                                         <div class="user-group">
-                                            <template v-for="(user, index) in element.assignedUsers">
+                                            <template v-for="(user, index) in findUser(element.assignedUsers)">
                                                 <img v-if="user.img_url && index < 3"
                                                      :src="user.img_url"
                                                      class="user-avatar"
@@ -75,9 +79,10 @@
                                                     {{ getNameInitial(user.name) }}
                                                 </div>
                                             </template>
-                                            <div v-if="element.assignedUsers > 3" class="more-user"
+                                            <div v-if="element.assignedUsers.length > 3"
+                                                 class="more-user"
                                                  @click="openUsersModal">
-                                                {{ users.length - 3 }}+
+                                                {{ element.assignedUsers.length - 3 }}+
                                             </div>
                                         </div>
                                         <div class="dropdown dropdown-action">
@@ -85,14 +90,18 @@
                                                 <i class="bi bi-three-dots"/>
                                             </button>
                                             <div :id="`project_action_${element.id}`" class="dropdown-content">
-                                                <a href="#">Edit</a>
-                                                <a href="#">Delete</a>
+                                                <a href="#" @click.prevent="editTask(element.id, projectState.type)">Edit</a>
+                                                <a href="#" @click.prevent="deleteTask(element.id, projectState.type)">Delete</a>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </template>
                         </draggable>
+                        <div v-if="!projectState.stateItems.length" class="empty-column">
+                            <img src="../assets/img/no_data.svg" alt="No task">
+                            <p>This pipeline is empty!</p>
+                        </div>
                     </div>
                 </template>
             </div>
@@ -147,15 +156,22 @@
                                 <li class="tab-list-item" :class="{active: activeTab === 1}">
                                     <div class="form-group">
                                         <label for="title">Title</label>
-                                        <input type="text" id="title" class="form-control" placeholder="Enter task title">
+                                        <input type="text"
+                                               id="title"
+                                               class="form-control"
+                                               placeholder="Enter task title"
+                                               v-model="formData.title">
                                     </div>
                                     <div class="form-group">
                                         <label for="description">Description</label>
-                                        <textarea id="description" class="form-control" rows="5"></textarea>
+                                        <textarea
+                                            id="description"
+                                            class="form-control"
+                                            rows="5" v-model="formData.description"/>
                                     </div>
                                     <div class="form-group">
                                         <label for="projectType">Project Type</label>
-                                        <select id="projectType" class="form-control">
+                                        <select id="projectType" class="form-control" v-model="formData.type">
                                             <option value="important">Important</option>
                                             <option value="irrelevant">Irrelevant</option>
                                             <option value="default">Default</option>
@@ -164,25 +180,41 @@
                                 </li>
                                 <li class="tab-list-item" :class="{active: activeTab === 2}">
                                     <div class="form-group search-employee">
-                                        <input type="search" class="form-control" placeholder="Search Employees">
+                                        <div class="input-group">
+                                            <input type="search"
+                                                   class="form-control"
+                                                   placeholder="Search employee"
+                                                   v-model="searchEmployee">
+                                            <i class="bi bi-search"></i>
+                                        </div>
+                                        <ul v-if="searchEmployee" class="autocomplete-wrapper">
+                                            <li v-for="(user, index) in filteredUser" :value="user.name"
+                                                @click="assignUser(user.id)">
+                                                {{ user.name }}
+                                            </li>
+                                        </ul>
                                     </div>
                                     <div class="employees-wrapper">
-                                        <div class="employee" v-for="(user, index) in users">
+                                        <div class="employee" v-for="(user, index) in findUser(formData.assignedUsers)">
                                             <div class="user-media">
                                                 <img v-if="user.img_url" :src="user.img_url" :alt="user.name">
                                                 <div v-else class="no-img">{{ getNameInitial(user.name) }}</div>
                                                 <p class="user-name">{{ user.name }}</p>
                                             </div>
-                                            <button type="button" class="btn-remove" @click="removeEmployee(id)">
+                                            <button type="button" class="btn-remove" @click="removeEmployee(user.id)">
                                                 <i class="bi bi-x"/>
                                             </button>
+                                        </div>
+                                        <div v-if="!formData.assignedUsers.length" class="not-assigned-users">
+                                            <h3>No employees assigned yet</h3>
+                                            <p>Search in the input box to assign employee</p>
                                         </div>
                                     </div>
                                 </li>
                             </ul>
                         </div>
                     </div>
-                    <button type="submit" class="btn-save">
+                    <button type="submit" class="btn-save" @click="addTask">
                         Save
                     </button>
                 </div>
@@ -192,7 +224,9 @@
 </template>
 
 <script>
-    import draggable from "vuedraggable";
+    import _ from 'lodash';
+    import {mapGetters, mapState} from 'vuex';
+    import draggable from 'vuedraggable';
     
     export default {
         name: 'Projects',
@@ -281,238 +315,135 @@
                     {id: 19, name: 'Jonnie Grate', img_url: ''},
                     {id: 20, name: 'Rochelle Bechtold'},
                 ],
-                projects: {
+                demoData: {
                     states: [
                         {
                             name: 'To do',
+                            type: 'todo',
                             stateItems: [
                                 {
                                     id: 1,
                                     title: 'Design',
                                     description: 'Lorem Ipsum is simply dummy text of the printing and typesetting industry.',
                                     project_type: 'irrelevant',
-                                    assignedUsers: [
-                                        {
-                                            id: 1,
-                                            name: 'Yvone Stocking',
-                                            img_url: 'https://images.unsplash.com/photo-1485893086445-ed75865251e0?ixid=MnwxMjA3fDB8MHxzZWFyY2h8MXx8cGVvcGxlfGVufDB8MnwwfHw%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'Kerrie Kissner',
-                                            img_url: ''
-                                        },
-                                        {
-                                            id: 3,
-                                            name: 'Frida Curd',
-                                            img_url: 'https://images.unsplash.com/photo-1519699047748-de8e457a634e?ixid=MnwxMjA3fDB8MHxzZWFyY2h8M3x8cGVvcGxlfGVufDB8MnwwfHw%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60'
-                                        }
-                                    ]
+                                    assignedUsers: [1, 2, 3]
                                 },
                                 {
                                     id: 2,
                                     title: 'Illustration',
                                     description: 'Lorem Ipsum is simply dummy text of the printing and typesetting industry.',
                                     project_type: 'important',
-                                    assignedUsers: [
-                                        {
-                                            id: 1,
-                                            name: 'Yvone Stocking',
-                                            img_url: 'https://images.unsplash.com/photo-1485893086445-ed75865251e0?ixid=MnwxMjA3fDB8MHxzZWFyY2h8MXx8cGVvcGxlfGVufDB8MnwwfHw%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'Kerrie Kissner',
-                                            img_url: ''
-                                        },
-                                        {
-                                            id: 3,
-                                            name: 'Frida Curd',
-                                            img_url: 'https://images.unsplash.com/photo-1519699047748-de8e457a634e?ixid=MnwxMjA3fDB8MHxzZWFyY2h8M3x8cGVvcGxlfGVufDB8MnwwfHw%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 3,
-                                    title: 'Prototype',
-                                    description: 'Lorem Ipsum is simply dummy text of the printing and typesetting industry.',
-                                    project_type: 'default',
-                                    assignedUsers: [
-                                        {
-                                            id: 1,
-                                            name: 'Yvone Stocking',
-                                            img_url: 'https://images.unsplash.com/photo-1485893086445-ed75865251e0?ixid=MnwxMjA3fDB8MHxzZWFyY2h8MXx8cGVvcGxlfGVufDB8MnwwfHw%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'Kerrie Kissner',
-                                            img_url: ''
-                                        },
-                                        {
-                                            id: 3,
-                                            name: 'Frida Curd',
-                                            img_url: 'https://images.unsplash.com/photo-1519699047748-de8e457a634e?ixid=MnwxMjA3fDB8MHxzZWFyY2h8M3x8cGVvcGxlfGVufDB8MnwwfHw%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60'
-                                        }
-                                    ]
+                                    assignedUsers: [3, 2, 4]
                                 }
                             ]
                         },
                         {
                             name: 'In Progress',
+                            type: 'in_progress',
                             stateItems: [
                                 {
-                                    id: 4,
+                                    id: 3,
                                     title: 'Design',
                                     description: 'Lorem Ipsum is simply dummy text of the printing and typesetting industry.',
                                     project_type: 'irrelevant',
-                                    assignedUsers: [
-                                        {
-                                            id: 1,
-                                            name: 'Yvone Stocking',
-                                            img_url: 'https://images.unsplash.com/photo-1485893086445-ed75865251e0?ixid=MnwxMjA3fDB8MHxzZWFyY2h8MXx8cGVvcGxlfGVufDB8MnwwfHw%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'Kerrie Kissner',
-                                            img_url: ''
-                                        },
-                                        {
-                                            id: 3,
-                                            name: 'Frida Curd',
-                                            img_url: 'https://images.unsplash.com/photo-1519699047748-de8e457a634e?ixid=MnwxMjA3fDB8MHxzZWFyY2h8M3x8cGVvcGxlfGVufDB8MnwwfHw%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60'
-                                        }
-                                    ]
+                                    assignedUsers: [3, 2, 4]
                                 },
                                 {
-                                    id: 5,
+                                    id: 4,
                                     title: 'Prototype',
                                     description: 'Lorem Ipsum is simply dummy text of the printing and typesetting industry.',
                                     project_type: 'default',
-                                    assignedUsers: [
-                                        {
-                                            id: 1,
-                                            name: 'Yvone Stocking',
-                                            img_url: 'https://images.unsplash.com/photo-1485893086445-ed75865251e0?ixid=MnwxMjA3fDB8MHxzZWFyY2h8MXx8cGVvcGxlfGVufDB8MnwwfHw%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'Kerrie Kissner',
-                                            img_url: ''
-                                        },
-                                        {
-                                            id: 3,
-                                            name: 'Frida Curd',
-                                            img_url: 'https://images.unsplash.com/photo-1519699047748-de8e457a634e?ixid=MnwxMjA3fDB8MHxzZWFyY2h8M3x8cGVvcGxlfGVufDB8MnwwfHw%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60'
-                                        }
-                                    ]
+                                    assignedUsers: []
                                 }
                             ]
                         },
                         {
                             name: 'Done',
+                            type: 'done',
                             stateItems: [
                                 {
-                                    id: 6,
+                                    id: 5,
                                     title: 'Moodboard',
                                     description: 'Lorem Ipsum is simply dummy text of the printing and typesetting industry.',
                                     project_type: 'irrelevant',
-                                    assignedUsers: [
-                                        {
-                                            id: 1,
-                                            name: 'Yvone Stocking',
-                                            img_url: 'https://images.unsplash.com/photo-1485893086445-ed75865251e0?ixid=MnwxMjA3fDB8MHxzZWFyY2h8MXx8cGVvcGxlfGVufDB8MnwwfHw%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'Kerrie Kissner',
-                                            img_url: ''
-                                        },
-                                        {
-                                            id: 3,
-                                            name: 'Frida Curd',
-                                            img_url: 'https://images.unsplash.com/photo-1519699047748-de8e457a634e?ixid=MnwxMjA3fDB8MHxzZWFyY2h8M3x8cGVvcGxlfGVufDB8MnwwfHw%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 7,
-                                    title: 'Website',
-                                    description: 'Lorem Ipsum is simply dummy text of the printing and typesetting industry.',
-                                    project_type: 'important',
-                                    assignedUsers: [
-                                        {
-                                            id: 1,
-                                            name: 'Yvone Stocking',
-                                            img_url: 'https://images.unsplash.com/photo-1485893086445-ed75865251e0?ixid=MnwxMjA3fDB8MHxzZWFyY2h8MXx8cGVvcGxlfGVufDB8MnwwfHw%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'Kerrie Kissner',
-                                            img_url: ''
-                                        },
-                                        {
-                                            id: 3,
-                                            name: 'Frida Curd',
-                                            img_url: 'https://images.unsplash.com/photo-1519699047748-de8e457a634e?ixid=MnwxMjA3fDB8MHxzZWFyY2h8M3x8cGVvcGxlfGVufDB8MnwwfHw%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 8,
-                                    title: 'Design',
-                                    description: 'Lorem Ipsum is simply dummy text of the printing and typesetting industry.',
-                                    project_type: 'default',
-                                    assignedUsers: [
-                                        {
-                                            id: 1,
-                                            name: 'Yvone Stocking',
-                                            img_url: 'https://images.unsplash.com/photo-1485893086445-ed75865251e0?ixid=MnwxMjA3fDB8MHxzZWFyY2h8MXx8cGVvcGxlfGVufDB8MnwwfHw%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'Kerrie Kissner',
-                                            img_url: ''
-                                        },
-                                        {
-                                            id: 3,
-                                            name: 'Frida Curd',
-                                            img_url: 'https://images.unsplash.com/photo-1519699047748-de8e457a634e?ixid=MnwxMjA3fDB8MHxzZWFyY2h8M3x8cGVvcGxlfGVufDB8MnwwfHw%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60'
-                                        }
-                                    ]
+                                    assignedUsers: []
                                 }
                             ]
                         }
                     ]
                 },
-                
+                formData: {
+                    title: '',
+                    description: '',
+                    type: '',
+                    assignedUsers: []
+                },
                 activeTab: 1,
                 offsetRight: 0,
+                projectState: '',
+                searchEmployee: ''
+            }
+        },
+        computed: {
+            // Getting projects state from vuex store
+            ...mapGetters(['projects']),
+            
+            // Return filtered users in employee assignment
+            filteredUser() {
+                return this.users.filter(item => item.name.toLowerCase().includes(this.searchEmployee.toLowerCase()));
             }
         },
         methods: {
-            openUsersModal() {
-                document.getElementById('usersModal').classList.add('show');
+            // Initiate local storage when the app mount
+            initiateLocalStorage() {
+                let storage = localStorage.getItem('stages');
+                if (storage) {
+                    this.$store.commit('getProject', JSON.parse(storage))
+                } else {
+                    localStorage.setItem('stages', JSON.stringify(this.demoData));
+                    this.$store.commit('getProject', this.demoData)
+                }
             },
-            closeUsersModal() {
-                document.getElementById('usersModal').classList.remove('show')
+            
+            // Update local storage after every action
+            updateLocalStorage() {
+                localStorage.setItem('stages', JSON.stringify(this.projects));
             },
-            openTaskModal() {
-                document.getElementById('taskModal').classList.add('show');
-            },
-            closeTaskModal() {
-                document.getElementById('taskModal').classList.remove('show')
-            },
+            
+            // Get name initial if the employee has no image
             getNameInitial(name) {
                 const fullName = name.split(' ');
                 const initials = fullName.shift().charAt(0) + fullName.pop().charAt(0);
                 return initials.toUpperCase();
             },
+            
+            // Generate unique id for any specific task
+            generateUniqueId() {
+                let ids = [];
+                this.projects.states.forEach(item => {
+                    ids = ids.concat(item.stateItems.map(i => Number(i.id)))
+                });
+                
+                return Math.max(...ids) + 1
+            },
+            
+            // Returns filtered users with ids
+            findUser(users) {
+                return this.users.filter(item => users.includes(item.id));
+            },
+            
+            // Opening dropdown menu
             openDropdown(id) {
                 document.getElementById(id).classList.toggle('show');
             },
-            removeEmployee(id) {
             
+            // Closing dropdown menu
+            closeDropdown() {
+                let element = document.querySelector('.draggable-wrapper');
+                element.querySelectorAll('.dropdown-content.show').forEach(obj => obj.classList.remove('show'));
             },
+            
+            // Switching tab in task assignment modal
             selectTab(id) {
                 let tabsList = this.$refs.tabsList;
                 this.activeTab = id;
@@ -520,21 +451,99 @@
                 tabsList.style.right = this.offsetRight + 'px';
             },
             
-            // Draggable States
-            clone(el) {
-                return {
-                    name: el.name + " cloned"
-                };
+            // Assigning user to a task
+            assignUser(id) {
+                this.formData.assignedUsers.push(id);
+                this.searchEmployee = '';
             },
-            log(evt) {
-                window.console.log(evt);
+            
+            // Opening employees modal
+            openUsersModal() {
+                document.getElementById('usersModal').classList.add('show');
+            },
+            
+            // Closing employees modal
+            closeUsersModal() {
+                document.getElementById('usersModal').classList.remove('show')
+            },
+            
+            // Opening task modal
+            openTaskModal(type) {
+                document.getElementById('taskModal').classList.add('show');
+                this.projectState = type;
+            },
+            
+            // Closing task modal
+            closeTaskModal() {
+                document.getElementById('taskModal').classList.remove('show');
+                this.formData = {
+                    title: '',
+                    description: '',
+                    type: '',
+                    assignedUsers: []
+                }
+            },
+            
+            // For add or update task
+            addTask() {
+                let state = this.projects.states.find((item) => item.type === this.projectState);
+                if (this.formData.id) {
+                    let task = state.stateItems.find((item) => item.id === this.formData.id);
+                    task.title = this.formData.title;
+                    task.description = this.formData.description;
+                    task.type = this.formData.type;
+                    task.assignedUsers = this.formData.assignedUsers;
+                } else {
+                    state.stateItems.push({
+                        id: this.generateUniqueId(),
+                        title: this.formData.title,
+                        description: this.formData.description,
+                        project_type: this.formData.type,
+                        assignedUsers: this.formData.assignedUsers
+                    });
+                }
+                this.updateLocalStorage();
+                this.closeTaskModal();
+            },
+            
+            // Edit task
+            editTask(id, type) {
+                let state = this.projects.states.find((item) => item.type === type),
+                    task = state.stateItems.find((item) => item.id === id);
+                
+                this.formData = _.cloneDeep(task);
+                this.openTaskModal(type);
+                this.closeDropdown();
+            },
+            
+            // For deleting task
+            deleteTask(id, type) {
+                let state = this.projects.states.find((item) => item.type === type),
+                    tasks = state.stateItems.map(item => item.id),
+                    index = tasks.indexOf(id)
+                
+                state.stateItems.splice(index, 1);
+                this.updateLocalStorage();
+                this.closeDropdown();
+            },
+            
+            // Remove employee from a task
+            removeEmployee(id) {
+                this.formData.assignedUsers.splice(this.formData.assignedUsers.indexOf(id), 1);
+            },
+            
+            // On changing Draggable state
+            changeStage(e) {
+                this.updateLocalStorage();
             },
         },
         mounted() {
+            // Initiating local storage
+            this.initiateLocalStorage();
+            
             // Closing modals on outside click
             let userModal = document.getElementById('usersModal'),
                 taskModal = document.getElementById('taskModal');
-            
             window.onclick = function (event) {
                 if (event.target == userModal) {
                     userModal.classList.remove('show');
@@ -547,6 +556,6 @@
             // Animate tab content
             let tabsList = this.$refs.tabsList;
             tabsList.style.right = this.offsetRight + 'px';
-        }
+        },
     }
 </script>
